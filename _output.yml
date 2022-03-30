@@ -1,0 +1,11 @@
+bookdown::bs4_book:
+  css: bs4_style.css
+  theme:
+    primary: "#BB3E73"
+bookdown::pdf_book:
+  includes:
+    in_header: preamble.tex
+  latex_engine: xelatex
+  citation_package: natbib
+  keep_tex: yes
+

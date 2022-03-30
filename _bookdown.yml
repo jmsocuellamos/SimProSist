@@ -1,0 +1,34 @@
+book_filename: "SimProSist"
+new_session: true
+before_chapter_script: _common.R
+delete_merged_file: true
+language:
+  ui:
+    chapter_name: "Unidad "
+    appendix_name: "Apéndice"
+  label:
+    fig: 'Figura '
+    tab: 'Tabla '
+    eq: 'Ecuación '
+    thm: 'Teorema '
+    lem: 'Lema '
+    def: 'Definición '
+    cor: 'Corolario '
+    prp: 'Proposición '
+    exm: 'Ejemplo '
+    exr: 'Ejercicio '
+    proof: 'Demostración. '
+    remark: 'Nota: '
+    solution: 'Solución. '
+rmd_files:
+  [
+    "index.Rmd",
+    "01-Probabilidad.Rmd",
+    "02-CMTD.Rmd" ,
+    "03-PP.Rmd",
+    "04-CMTC.Rmd",
+    "05-Colas.Rmd",
+    "06-Casos.Rmd",
+    "07-simmer.Rmd",
+    "09-references.Rmd",
+  ]

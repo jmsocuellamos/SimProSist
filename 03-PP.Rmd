@@ -1,0 +1,531 @@
+# Proceso de Poisson {#poissonprocess}
+
+En esta unidad se presentan se presentan los Procesos de Poisson que son la base de muchos de los sistemas de Cadenas de Markov de Tiempo Continuo que estudiaremos con más detalle más adelante. Este tipo de procesos estocásticos se utilizan para modelizar el número de ocurrencias de un evento en un periodo de tiempo determinado y nos sirven para modelizar situaciones bastante comunes como las llegadas de clientes a una cola, el número de fallos que se producen en una cadena de producción, el número de reclamaciones que recibe una compañía de seguros, el número de accidentes de tráfico en una carretera, el número de pedidos en un sistema de inventarios,...
+
+Veamos a continuación un ejemplo sencillo de utilización de este tipo de procesos.
+
+::: {#pp001 .example}
+Estamos interesados en estudiar la dinámica de la llegada de llamadas telefónicas a un centro de llamadas. Para describir este proceso consideremos una colección de variables aleatorias $\{N_t; t ≥ 0\}$, donde cada variable aleatoria $N_t$, para un $t$ dado, denota el número acumulado de llamadas que llegan al centro hasta el momento $t$. Como estas llamadas registran un recuento, el espacio de estados es el conjunto de números naturales con el cero $S= \{0,1,2,...\}$. En otras palabras, la llegada de llamadas telefónicas puede modelarse como un proceso estocástico de tiempos (parámetros) continuos con un espacio de estados contable.
+:::
+
+## Definición y propiedades
+
+::: {.yellowbox data-latex=""}
+::: definition
+Sea un proceso estocástico de parámetro continuo $\{N_t; t \geq 0\}$ con $N_0 = 0$, $N_t$ representando el número de eventos que acontecen en el periodo $(0,t]$ y espacio de estados el de los enteros no negativos, $S=\{0,1,2,...\}$. Dicho proceso se denomina **Proceso de Poisson (PP) de tasa** $\lambda$ si:
+
+$P(N_t = k) = e^{\lambda t}(\lambda t)^k/k!$ para $k=\{0,1,2,...\}, t \geq 0$, esto es, $N_t \sim Po(\lambda t)$.
+
+Además, un PP verifica las siguientes propiedades:
+
+* Propiedad de Markov: $P(N_{t+s} = j|N_s=i, N_u, 0\leq u \leq s)=P(N_{t+s} = j|N_s=i)$. Lo que ocurre hasta cierto instante cuando se sabe lo que ocurrió hasta cierto instante anterior, no depende de lo que ocurrió en instantes previos a dicho instante anterior.
+* Un proceso de Poisson tiene incrementos independientes. En otras palabras, lo que ocurre en un periodo de tiempo es independiente de lo que ocurre en otro, siempre que no se solapen los dos periodos: $\{N_{s+u} - N_s = i\}$ es independiente del evento $\{N_t = j\}$ si $t<s$.
+* Un proceso de Poisson tiene incrementos estacionarios, es decir, lo que sucede en un periodo de tiempo sólo depende de la amplitud de dicho periodo, y no de cuándo empezó. La probabilidad $P(N_{s+u} - N_s = i)$ sólo depende del valor de $u$, y $N_{s+u} - N_s \sim P(\lambda u)$.
+:::
+:::
+
+Usando la definición de una variable aleatoria Poisson, es claro que para un proceso de Poisson
+
+$$E(N_t) = \lambda t$$
+
+de forma que $\lambda$ proporciona la tasa media de llegadas por unidad de tiempo para un proceso de llegadas que está descrito por un PP con tasa $\lambda$.
+
+::: {#pp000 .example}
+Supongamos que $N(t)$ representa el número de operaciones que se realizan en un quirófano de un hospital durante un intervalo de tiempo de amplitud $t$, y que $\{N(t), t\geq0\}$ es un PP de tasa 24 operaciones por día.
+:::
+
+1.  ¿Cuál es el número medio de operaciones que se realizan en un turno de 8 horas?
+
+Puesto que un turno de 8 horas representa $8/24=1/3$ de un día, y $N(t)\sim Po(24t)$, tendremos que $N(1/3)\sim Po(24/3)$, luego se esperan en torno a $24/3=8$ operaciones por turno.
+
+2.  ¿Cuál es la probabilidad de que no haya operaciones entre las 12 de la noche y la 1 de la madrugada?
+
+Igual que antes, el número de operaciones que se realizan en una franja de una hora tendrá una distribución $N(1/24) \sim Po(24/24)$, luego la probabilidad de que no haya operaciones en esa franja será de
+
+```{r}
+# probabilidad de que no haya operaciones en 1 hora
+# distribución Po(1)
+lambda=24
+franja=1/24
+ppois(0,lambda*franja)
+```
+
+3.  ¿Cuál es la probabilidad de que haya tres operaciones entre las 8 a.m. y las 12 del mediodía, y 4 operaciones entre las 12 del mediodía y las 5 p.m.?
+
+Si asumimos que $t=0$ se corresponde con las 8,a.m., a las 12 del mediodía han transcurrido 4 horas, y hasta las 5 p.m. han transcurrido 9 horas. La probabilidad que nos piden se refiere a una probabilidad conjunta de dos franjas horarias que no se solapan, por lo que se trata de sucesos independientes y la probabilidad conjunta es el producto de las probabilidades individuales:
+
+\begin{eqnarray*}
+& Pr[N(4/24)-N(0)=3, N(9/24)-N(4/24)=4]= \\
+& \qquad = Pr[N(4/24)-N(0)=3] \cdot Pr[N(9/24)-N(4/24)=4]
+\end{eqnarray*}
+
+Ahora por la estacionariedad de los incrementos, tendremos que esa probabilidad la podemos escribir como
+
+$$Pr[N(4/24)=3]\cdot Pr[N(5/24)=4]$$
+
+con las distribuciones $Po(24 \cdot 4/24)=Po(4)$ y $Po(24 \cdot 5/24)=Po(5)$.
+
+```{r}
+dpois(3,4)*dpois(4,5)
+```
+
+::: proposition
+
+Debido a las propiedades de incrementos independientes y estacionariedad de un proceso de Poisson, la distribución de los tiempos entre llegadas consecutivas puede determinarse fácilmente.
+
+Sea $T_n$ una v.a. que identifica el tiempo que transcurre entre dos llegadas consecutivas $n$ y $n-1$. La probabilidad de que no se produzca ninguna llegada en un intervalo de tiempo de amplitud $t$, implica que $T_n>t$ y viene dada por:
+
+$$Pr(T_n > t)=Pr(N_t = 0) = e^{\lambda t}.$$ Por lo tanto, $P(T_n \leq 0) = 1 - P(T_n > 0) = 1 - e^{-\lambda t}$ para $t ≥ 0$, que es la función de distribución [Exponencial](#exponencial).
+
+Concluimos pues, que si las llegadas a un sistema se producen según un PP de tasa $\lambda$, entonces los tiempos entre llegadas responden a una distribución exponencial de parámetro $\lambda$.
+:::
+
+::: {.yellowbox data-latex=""}
+::: {#tpollegadas .definition}
+Para un PP con tasa $\lambda$, la distribución del tiempo entre dos llegadas consecutivas es exponencial de media $1/\lambda$.
+
+Si $\{N_t; t \geq 0\}$ es un PP que describe el número de llegadas que acontecen durante un periodo de tiempo de amplitud $t \geq 0$, entonces los tiempos entre llegadas consecutivas $n-1$ y $n$, $\{T_n, n\geq 1\}$, constituyen una secuencia de variables aleatorias iid (independientes e idénticamente distribuidas) $Exp(\lambda)$.
+
+Lo contrario también es cierto, es decir, un proceso de llegadas con tiempos entre llegadas que son exponenciales, es un PP.
+:::
+:::
+
+::: proposition
+Si $S_n$ denota el tiempo que transcurre hasta la n-ésima llegada en un PP de tasa $\lambda$, entonces $S_n$ se distribuye según una distribución Erlang $Erl(n,\lambda)$, con función de densidad dada por:
+
+$$f(s) = \frac{\lambda(\lambda s)^{k-1}e^{-\lambda s}}{(k-1)!}, \quad \text{para } s \geq 0$$ Esta propiedad es consecuencia de que la distribución Erlang $Erl(n,\lambda)$ surge de la suma de $n$ v.a. iid $Exp(\lambda)$.
+:::
+
+## Extensiones {#extensiones_pp}
+
+### Superposición {#superposicion_pp}
+
+::: {#pp002 .example}
+Consideremos una autovía que tiene dos puntos de acceso A y B y sólo uno C de salida. Asumimos que los coches acceden a la autovía por el punto A según un PP con tasa de 8 vehículos por minuto, y también los que acceden por el punto B según un PP con tasa de 6 vehículos por minuto. Queremos estudiar cómo se producen las salidas de la autovía.
+:::
+
+::: {.yellowbox data-latex=""}
+::: definition
+Sean $\{N_t; t \geq 0\}$ y $\{M_t; t \geq 0\}$ dos PP independientes con tasas $\lambda_1$ y $\lambda_2$ respectivamente. Entonces el proceso $\{Y_t = N_t + M_t, t \geq 0\}$ es un PP con tasa $\lambda_1 + \lambda_2$, que se obtiene de la superposición de los dos PP.
+:::
+:::
+
+La solución al Ejemplo \@ref(exm:pp002) para el proceso de salidas de la autovía viene dada por la superposición de los dos procesos de entradas, $C=A+B$, de modo que responderá a un PP de tasa $14=8+6$.
+
+### Adelgazamiento con mixtura {#adelgazamiento_pp}
+
+::: {#pp003 .example}
+Consideramos el tráfico que llega a una bifurcación, que sigue un PP con una tasa de 2 coches por minuto. Además, hay un 30% de posibilidades de que los coches giren a la izquierda y un 70% de que giren a la derecha. Queremos estudiar el proceso que describe el número de coches que giran a la izquierda y de los que giran a la derecha.
+:::
+
+::: {.yellowbox data-latex=""}
+::: definition
+Sea $\{N_t; t \geq 0\}$ un PP con tasa $\lambda$ y sea $\{X_1,X_2,...\}$ una secuencia de variables aleatorias iid Bernoulli $Ber(p)$, independientes del proceso de Poisson. Sea $M = \{M_t ;t \geq 0 \}$ un nuevo proceso que registra las llegadas de $\{N_t; t \geq 0\}$ con probabilidad $p$, esto es, si $X_n=1$ la llegada n-ésima se registra, y si $X_n=0$ no se registra. Entonces el proceso $\{M_t; t \geq 0\}$ resultante, que supone un "adelgazamiento" o encogimiento del proceso original $N_t$, es un PP con tasa $\lambda p$.
+:::
+:::
+
+Aplicando este resultado al Ejemplo \@ref(exm:pp003), y suponiendo que todos los coches actúan de forma independiente, el flujo de giros por la bifurcación de la izquierda forma un PP con una tasa de $0.6=0.3\times 2$ por minuto, y el flujo de giros por la bifurcación de la derecha forma un PP con una tasa de $1.4=0.7\times 2$ coches por minuto.
+
+### Composición {#composicion_pp}
+
+En un PP los eventos o llegadas suceden de uno en uno. En otras ocasiones, las llegadas o eventos se producen por lotes y los tamaños de los lotes forman una secuencia de variables aleatorias positivas independientes e idénticamente distribuidas. Un ejemplo lo tenemos en la llegada de clientes a un restaurante, que se realiza normalmente en grupos de tamaño variable. Si definimos por $N_t$ el número total de llegadas en el periodo $(0,t]$, este no se puede modelizar como un PP, pero sí como un "PP compuesto".
+
+::: {#pp004 .example}
+Consideramos la llegada de pasajeros a una estación de tren. Los pasajeros llegan a la estación de tren en coche. Los coches llegan a la estación según un PP de media 5 coches por hora, $N_t \sim Po(5)$, donde $N_t$ representa el número de coches que han llegado en $(0,t]$.
+
+Por otro lado, en cada coche pueden llegar 1, 2 o hasta 3 pasajeros. El número de pasajeros que llegan en el n-ésimo coche se denota con la v.a. $X_n$, donde $P(X_n = 1) = 0.5$, $P(X_n = 2) = 0.3$, y $P(X_n = 3) = 0.2$ para cualquier $n>0$.
+
+Estamos interesados en saber cuántos pasajeros en total llegan a la estación en coche.
+:::
+
+::: {.yellowbox data-latex=""}
+::: {#ppcompuesto .definition}
+Sea $\{N_t; t \geq 0\}$ un PP de tasa $\lambda$, que representa el proceso de llegada por lotes a un sistema, y sea $\{X_1, X_2,...\}$ una secuencia de variables aleatorias i.i.d., y también independientes de $N_t$, tales que $X_n$ representa el tamaño del lote que llega en n-ésimo lugar. El proceso $\{Y_t; t \geq 0\}$ que acumula el número total de llegadas en $(0,t]$ y viene definido por la suma de las llegadas en los $N_t$ lotes que han llegado en dicho periodo, esto es,
+
+```{=tex}
+\begin{equation} 
+Y_t = \sum_{k=1}^{N_t} X_k, \qquad N_t=1,2,...; \quad t\geq 0
+(\#eq:ppc-ecu)
+\end{equation}
+```
+se denomina **Proceso de Poisson compuesto** (PPC).
+
+Si las v.a. $\{X_i, i=1,...,N_t\}$ independientes de $N_t$ se distribuyen iid con media $\mu=E(X_i)$ y varianza $\sigma^2=Var(X_i)$, entonces la esperanza y varianza del número total de llegadas/eventos para cada valor de $t \geq 0$ se obtiene como:
+
+\begin{eqnarray*}
+E(Y_t) &=& \mu \lambda t \\
+V(Y_t) &=& (\sigma^2+\mu^2) \lambda t
+\end{eqnarray*}
+
+Nótese que $\sigma^2+\mu^2=E(X_i^2)$ es el momento de orden 2 para la v.a. $X_i$.
+:::
+:::
+
+La respuesta a la cuestión planteada en el Ejemplo \@ref(exm:pp004) se obtiene al plantear que el número total de pasajeros que llegan a la estación, denotado por $\{Y_t; t > 0 \}$, será un PP compuesto, definido por: $$Y_t=\sum_{i=1}^{N_t} X_i.$$ 
+
+Calculemos ahora el número esperado de pasajeros (y su error) que llegarán a la estación en un periodo de 8 horas. Para ello habremos de calcular en primer lugar la media y varianza del número de viajeros por coche (tamaño del lote):
+
+```{r}
+# Para el número de pasajeros por coche
+# sucesos posibles
+x=c(1,2,3)
+# probabilidades asociadas
+p=c(0.5,0.2,0.3)
+
+# valor esperado
+mu=as.numeric(p%*%x);mu
+# momento de orden 2
+m2=as.numeric(p%*%(x^2));m2
+```
+
+Así, el número medio de pasajeros por coche será `r mu` y `r m2` su momento de orden 2. El número (total) esperado de pasajeros en 8 horas lo calcularemos multiplicando por la tasa de llegadas de coches, $\lambda$:
+
+```{r}
+lambda=5
+t=8
+# valor esperado
+ey=lambda*mu*t
+# varianza
+vy=m2*lambda*t
+cat("E(Y_8)=",ey,", V(Y_8)=",vy)
+```
+
+Por lo tanto, esperamos que lleguen a la estación en 8 horas alrededor de `r ey` pasajeros, con una desviación típica de `r round(sqrt(vy),2)`.
+
+### PP no estacionarios {#pp_noestacionarios}
+
+Muchos procesos físicos que a primera vista parecen candidatos a ser modelados como un proceso de Poisson, fallan debido a la suposición de estacionariedad. Por ejemplo, consideremos el análisis de tráfico en el que estamos interesados en modelar los tiempos de llegada de los coches a una intersección. En la mayoría de los lugares es poco probable que la tasa media de llegada de coches a las 2p.m. sea la misma que a las 2a.m., lo que significa que el proceso no es estacionario y, por lo tanto, el supuesto de estacionariedad exigido a los procesos de PP no se cumple.
+
+::: {.yellowbox data-latex=""}
+::: {#ppnohomogeneo .definition}
+Sea $\{N_t; t \geq 0\}$ un proceso estocástico de parámetro contínuo con $N_0 = 0$. Si asumimos que existe un función continua $m()$ definida con la integral de la tasa del proceso $\lambda()$,
+
+$$m(t) = \int_0^t \lambda(s)ds, \quad \text{ para } t \geq 0$$
+
+entonces el proceso $N_t$ se dice que es un **PP no estacionario** si:
+
+1.  $P(N_t = k) = e^{-m(t)}(m(t)^k)/k!$ para $k, t \geq 0$, es decir, $N_t \sim Po(m(t))$.
+2.  El evento $\{N_{s+u} - N_s = i\}$ es independiente del evento $\{N_t = j\}$ si $t<s$.
+
+Estos procesos se denominan también **PP no homogéneos**.
+:::
+:::
+
+::: {#pp005 .example}
+Un banco ha decidido aumentar la capacidad de su ventanilla, y desea modelar dicho proceso. Un primer paso en la modelización de la ventanilla es analizar el proceso de llegadas de clientes. Las ventanillas abren a las 7:30 de la mañana durante los días laborables. Se ha determinado que el proceso de llegadas es un PP no estacionario en el que la tasa media de llegadas aumenta lentamente de forma lineal de 10 clientes por hora a 12 durante los primeros 60 minutos. 
+
+Tenemos pues, una tasa de llegadas que varía de modo continuo con $t$ (horas) entre las 7:30 y las 8:30 según la recta:
+
+$$\lambda(t) = 10 + 2t, \qquad t \in [0,1]$$
+
+La integral de la tasa del proceso $\lambda(t)$ es:
+
+$$m(t) = \int_0^t (10+2s)ds = 10t + t^2, \quad \text{ para } t \leq 1.$$
+
+De esta forma el número esperado de llegadas al banco desde las 8.00 a las 8.30 (dado que abre a las 7:30) viene dado por:
+
+$$E(N_1 - N_{0.5}) = m(1) - m(0.5), \quad \text{ pues } N_1 - N_{0.5} \sim Po(m(1) - m(0.5))$$
+
+```{r}
+m=function(t){10*t+t^2}
+m(1)-m(0.5)
+```
+
+y es de `r  m(1)-m(0.5)`.
+:::
+
+## Simulación
+
+Para simular procesos de Poisson vamos a utilizar la propiedad que relaciona el número de llegadas con el tiempo entre llegadas consecutivas en la Definición \@ref(def:tpollegadas). Planteemos el algoritmo de simulación
+
+::: {.silverbox data-latex=""}
+**Algoritmo de simulación de un Proceso de Poisson de tasa $\lambda$**
+
+1.  Fijar condiciones de simulación (número de eventos o tiempo máximo de simulación).
+2.  Simular tiempos entre eventos consecutivos $t \sim Exp(\lambda)$.
+3.  Para cada tiempo $t$ acumular el tiempo total transcurrido.
+4.  Para cada tiempo $t$ acumular el número de eventos
+5.  Devolver el número de eventos, los tiempos entre eventos y el tiempo total transcurrido con cada evento.
+:::
+
+Y programamos a continuación una función genérica que nos permitirá simular un proceso de Poisson en función de un número prefijado de eventos o llegadas o de un tiempo máximo de duración.
+
+```{r}
+simula.pp=function(lambda,neventos=NULL,tmax=NULL){
+  # se lanza la simulación hasta conseguir neventos o hasta un instante tmax
+  # mensaje de error si no se introduce la regla de parada
+  if(is.null(tmax) & is.null(neventos)){
+    return(cat("Introduce neventos o tmax"))
+  }
+  # si no se introduce tmax, la regla de parada es neventos
+  else if(is.null(tmax)){
+    # simulación de los tiempos entre eventos sucesivos
+    t=rexp(neventos,lambda)
+  }
+  # si no se introduce neventos, la regla de parada es tmax
+  else if(is.null(neventos)){
+    t=c()
+    tt=0
+    i=1
+    t[1]=rexp(1,lambda)
+    # si la primera llegada se produce después de tmax, contabilizamos 0 eventos
+    if(t[1]>tmax)
+      return(data.frame(eventos=0,t=0,ttotal=0))
+    # en otro caso, continuamos hasta llegar a tmax
+    else{
+    while(tt<=tmax){
+      i=i+1
+      t[i]=rexp(1,lambda)
+      tt=tt+t[i]
+        }
+    # se seleccionan sólo los eventos que se produjeron antes de tmax
+    t=t[cumsum(t)<=tmax]
+  }}
+return(data.frame(eventos=1:length(t),t,ttotal=cumsum(t)))
+}
+```
+
+::: {#pp006 .example}
+Consideremos la situación del hospital planteada en el Ejemplo \@ref(exm:pp000), donde el número de operaciones que se realizan en un quirófano es un $PP(\lambda)$, con tasa de intervenciones por día $\lambda=24$. Queremos estimar por simulación las cuestiones que se proponían en aquel ejemplo:
+
+1.  Número esperado de operaciones durante 8 horas.
+2.  Probabilidad de que no haya intervenciones en un periodo de 1 hora.
+3.  Probabilidad de que haya 3 operaciones entre las 8am y 12pm y 4 entre las 12pm y 5pm.
+:::
+
+Simulamos una vez el funcionamiento del quirófano controlando el número de operaciones a realizar o el tiempo de funcionamiento
+
+```{r}
+simulacion=simula.pp(lambda=24,neventos=200)
+head(simulacion)
+simulacion=simula.pp(lambda=24,tmax=2)
+head(simulacion)
+```
+
+Y a continuación calculamos las cantidades solicitadas.
+
+1.  Número esperado de operaciones durante 8 horas.
+
+Para calcular el número esperado de operaciones que se realizan durante 8 horas tendremos que simular el proceso durante 8 horas varias veces (nsim), y calcular (y guardar) en cada simulación, el número de operaciones que se realizan. El número esperado de operaciones lo obtendremos con el promedio de estas cantidades, y con ellas también una estimación del error.
+
+```{r}
+nsim=5000
+tmax=8/24
+lambda=24
+set.seed(123)
+noperaciones=c()
+# simulamos nsim veces el proceso durante 8 horas
+for(i in 1:nsim){
+simulacion=simula.pp(lambda=lambda,tmax=tmax);simulacion
+# número de operaciones realizadas
+noperaciones[i]=max(simulacion$eventos)
+}
+m=mean(noperaciones)
+error=sd(noperaciones)/sqrt(nsim)
+# calculamos la media y el error
+cat("E(operaciones en 8 horas)=",round(m,2), ", Error=",round(error,2))
+cat("\n IC(operaciones en 8 horas)=[",round(m-qnorm(0.975)*error,2),
+    ",",round(m+qnorm(0.975)*error,2),"]")
+```
+
+2.  Probabilidad de que no haya intervenciones en un periodo de 1 hora.
+
+Simularemos nsim veces el proceso durante 1 hora y guardamos el número de operaciones realizadas. Calculamos la probabilidad con el conteo de casos favorables dados por las simulaciones en las que no se produce ninguna operación.
+
+```{r}
+nsim=5000
+tmax=1/24
+lambda=24
+set.seed(123)
+noperaciones=c()
+# simulamos nsim veces el proceso durante tmax horas
+for(i in 1:nsim){
+simulacion=simula.pp(lambda=lambda,tmax=tmax)
+# no se ha realizado ninguna operación
+noperaciones[i]=max(simulacion$eventos)
+}
+favorables=(noperaciones==0)*1
+p=mean(favorables)
+error=sqrt(sum((favorables-p)^2)/(nsim^2))
+# calculamos la media y el error
+cat("Pr(sin operaciones en 1 hora)=",p, ", Error=",error)
+cat("\n IC(Pr(sin operaciones en 1 hora))=[",round(p-qnorm(0.975)*error,3), ",",round(p+qnorm(0.975)*error,3),"]")
+```
+
+3.  Probabilidad de que haya 3 operaciones entre las 8am y 12pm y 4 entre las 12pm y 5pm.
+
+Simulamos el proceso empezando a las 8am y acabando a las 5pm, esto es, durante un total de 9 horas. Contabilizamos cuántas operaciones hay en las 4 primeras horas (franja 1) y cuántas en las 5 siguientes (franja 2). Contamos los casos favorables al suceso que se plantea.
+
+```{r}
+nsim=5000
+tmax=9/24
+lambda=24
+set.seed(123)
+# vectores para guardar el número de operaciones en cada franja
+noper1=noper2=c()
+# simulamos nsim veces el proceso durante tmax horas
+for(i in 1:nsim){
+simulacion=simula.pp(lambda=lambda,tmax=tmax)
+# contamos el número de operaciones en cada franja
+noper1[i]=sum(simulacion$ttotal<=4/24)
+noper2[i]=sum(simulacion$ttotal>4/24)
+}
+# identificamos las cadenas en las que se dan simultaneamente ambos sucesos
+favorables=((noper1==3)&(noper2==4))*1
+p=mean(favorables)
+error=sqrt(sum((favorables-p)^2)/(nsim^2))
+# calculamos la media y el error
+cat("Pr(suceso)=",p, ", Error=",error)
+cat("\n IC(Pr(ssuceso))=[",round(p-qnorm(0.975)*error,3), ",",round(p+qnorm(0.975)*error,3),"]")
+```
+
+La simulación para extensiones del PP se deriva de las definiciones dadas en la Sección [Extensiones](extensiones_pp).
+
+### Simulación con simmer
+
+`simmer`[@R-simmer] es una librería de R que permite la simulación eventos discretos y que desarrollamos con detalle en la Unidad [Simulación DES con simmer](#simmer-unidad).
+
+Simular un proceso de Poisson con `simmer` es bastante sencillo. En primer lugar, contamos muy brevemente la dinámica de simulación del Ejemplo \@ref(exm:pp006) con esta librería:
+
+1. Se carga la librería y se define un entorno de simulación con el comando `env=simmer()`
+2. Se define el evento: operación.
+3. Se definen las acciones realizan cada uno de los eventos en una trayectoria (quirófano): comenzar la operación.
+4. Se generan eventos en función de la distribución para el tiempo entre eventos, y son dirigidas a la trayectoria (quirófano).
+5. Se corre el sistema durante el tiempo deseado.
+
+```{r}
+# Función para simular un PP(lambda) hasta t con simmer
+library(tidyverse)
+library(simmer)
+
+simula.pp.simmer=function(t,lambda){
+env=simmer()
+
+# Cada evento es una entrada a quirófano
+quirofano <- trajectory() %>%
+  log_("Comienza la operación")
+ 
+env %>%
+  # los tiempos entre llegadas se simulan exponenciales
+  add_generator("operacion", quirofano, function() rexp(1,lambda)) %>%
+  run(until=t)
+}
+```
+
+Si queremos calcular el número esperado de operaciones que se realizan durante 8 horas, simulamos el sistema durante 8 horas, utilizando en lugar del proceso original de número de operaciones en un día, con tasa $\lambda=24$, el de número de operaciones en una hora, con tasa $\lambda=1$.
+```{r}
+lambda=1
+tmax=8
+#set.seed(1477)
+operaciones = simula.pp.simmer(tmax,lambda)
+# y obtenemos el número de simulaciones en esa franja con
+get_n_generated(operaciones,"operacion")-1
+get_mon_arrivals(operaciones)
+```
+
+Para obtener una estimación de lo que ocurre en un periodo de 8 horas, hemos de simular varias veces ese periodo y conseguir una estimación Monte-Carlo con el número de operaciones efectuadas.
+
+```
+lambda=1
+tmax=8
+nsim=500
+# guardamos en un vector el número de operaciones en cada franja simulada
+franja=c()
+for(i in 1:nsim)
+franja[i] = get_n_generated(simula.pp.simmer(tmax,lambda),"operacion")
+```
+
+```{r include=FALSE}
+lambda=1
+tmax=8
+nsim=500
+# guardamos en un vector el número de operaciones en cada franja simulada
+franja=c()
+for(i in 1:nsim)
+franja[i] = get_n_generated(simula.pp.simmer(tmax,lambda),"operacion")-1
+```
+
+Promediamos el número de operaciones que se han producido en cada franja para obtener la estimación Monte-Carlo y su error.
+
+```{r}
+m=mean(franja)
+error=sd(franja)/sqrt(nsim)
+ic.low=m-qnorm(0.975)*error
+ic.up=m+qnorm(0.975)*error
+cat("E=",m,", error=",error,", IC95%=(",ic.low,",",ic.up,")")
+```
+
+Procederíamos de modo similar para resolver las otras cuestiones. Inténtalo tú mismo/a.
+
+## Ejercicios {#ejer-u3}
+
+### Básicos
+
+**Ejercicio B3.1.** En una tienda de animales entran clientes a razón de 8 por hora.
+
+1.  ¿Cuál es la probabilidad de que lleguen al menos 4 clientes durante los próximos 30 minutos?
+2.  ¿Cuál es la probabilidad de que en las 8 horas en que permanece abierta la tienda entren al menos 70 clientes?
+
+**Ejercicio B3.2.** En una estación de bomberos el tiempo entre llamadas por avisos sigue una distribución exponencial con una media de 32 minutos.
+
+1.  Acaba de llegar una llamada. ¿Cuál es la probabilidad de que la próxima llamada se produzca en menos de media hora?
+2.  ¿Cuál es la probabilidad de que se produzcan exactamente dos llamadas durante la próxima hora?
+
+**Ejercicio B3.3.** Una empresa que controla la seguridad de una ciudad ha observado que los intentos de entrar en domicilios ajenos para robar (para los que tienen contratada la seguridad con ellos) ocurren con un PP de tasa 2.2 por día. El sistema opera 24 horas al día.
+
+1.  ¿Cuál es la probabilidad de que mañana se produzcan 4 intentos de robo?
+2.  ¿Cuál es la probabilidad de que no se produzca ningún intento de robo durante la noche (entre las 12 de la noche y las 8 de la mañana)?
+3.  Si ahora es medianoche y el último intento de robo se produjo a las 10:30pm, ¿cuál es la probabilidad de que el siguiente intento ocurra antes de las 5:30am?
+
+**Ejercicio B3.4.** En el caso de la empresa de seguridad del Ejercicio B3.3 resulta que además se sabe que el 10% de los intentos de entrar en la casa resultan en robo efectivo.
+
+1.  ¿Cuál es la probabilidad de que se produzcan 3 intentos de robo que acaben en robo?
+2.  Ahora mismo son las 6am del lunes. El último intento de robo que acabó en robo ocurrió a medianoche. ¿Cuál es la probabilidad de que no se hayan producido robos durante dicho periodo?
+
+**Ejercicio B3.5.** En una máquina hay dos tipos comunes de fallos críticos: en la componente electrónica A o en la B. Si cualquiera de estas componentes falla, la máquina se para. La componente A falla conforme a un PP con tasa 1.1 fallos por turno (la fábrica trabaja 24/7 en turnos de 8 horas). La componente B falla según un PP con tasa 1.2 fallos por día.
+
+1.  ¿Cuál es la probabiliadd de que se produzcan exactamente 5 fallos de la máquina durante un día?
+2.  ¿Cuál es la probabilidad de que la máquina no se pare más de una vez durante el siguiente turno?
+3.  Ahora mismo es mediodía y el último fallo se produjo hace 4 horas. ¿Cuál es la probabilidad de que el próximo parón se produzca antes de las 6pm?
+4.  Simula los parones de la máquina, mostrando qué componente falla en cada ocasión y asumiendo que el tiempo de reparación es despreciable y la máquina continua trabajando inmediatamente. Estima la probabilidad de que la máquina no se pare más de 1 vez durante un turno.
+5.  Simula los parones de la máquina, mostrando qué componente falla en cada ocasión y asumiendo que el tiempo de reparación de cada componente se distribuye uniforme entre 5 y 60 minutos. Estima la probabilidad de que la máquina no se pare más de 1 vez durante un turno.
+
+**Ejercicio B3.6.** Los clientes entran en una tienda según un PP con tasa 5 clientes por hora. La probabilidad de que un cliente se vaya sin comprar es 0.20. Si el cliente compra, lo que se gasta se puede aproximar con una distribución Gamma con parámetro de escala 100€ y de forma 2.5.
+
+1.  Da la media y la desviación típica del dinero que consigue la tienda por las compras de los clientes que entran en una hora.
+2.  Calcula lo mismo para una franja de 10 horas.
+
+Estima la probabilidad de que la máquina no se pare más de 1 vez durante un turno.
+
+**Ejercicio B3.7.** En el caso de la empresa de seguridad del Ejercicio B3.3 resulta que se ha estudiado mejor y el número de intentos de robo sigue un PP cuya tasa depende de la franja horaria. Entre las 6am y las 8am la tasa es de 0.3, entre las 8pm-medianoche de 0.6, de medianoche a las 4am la tasa es 1 y de las 4am a las 6am la tasa es 0.3. Contesta a las mismas preguntas que se formularon en el Ejercicio B3.3.
+
+**Ejercicio B3.8.** Se envía una nave espacial a Júpiter para tomar fotos de las lunas y enviarlas a la Tierra. Hay tres sistemas críticos involucrados: la cámara, la batería y la antena de transmisión. Estos tres sistemas fallan independientemente entre sí. La vida esperada de la batería es de 6 años, la de la cámera es 12 años y la de la antena de 10 años. Asume que todos los tiempos de vida son v.a. exponenciales La nave alcanzará Júpiter después de 3 años desde que arranca la misión. ¿Cuál es la probabilidad de que la misión resulte exitosa?
+
+**Ejercicio B3.9.** En una maternidad los partos simples se dan con probabilidad, 0.9, los de mellizos o gemelos con probabilidad 0.08 y los de trillizos con probabilidad 0.02. El número de partos sigue un PP con tasa 10 por día.
+
+1.  Calcula el número esperado de nacimientos a lo largo de un día.
+2.  ¿Cuál es la probabilidad de que se dé al menos un parto de gemelos o mellizos?
+3.  Suponiendo que durante un día han nacido unos gemelos, ¿cuál es el número de partos que se han dado?
+
+**Ejercicio B3.10.** El número de coches que visitan un parque nacional sigue un PP con tasa 15 por hora. Cada coche tiene k ocupantes con probabilidad $p_k$, donde
+
+$$p_1=0.2, \quad, p_2=0.3, \quad p_3=0.3, \quad p_4=0.1, \quad p_5=0.5, \quad p_6=0.05.$$
+
+1.  Calcula la media y la varianza del número de visitantes del parque durante un periodo de 10 horas.
+2.  Si el coste de la entrada de cada coche es de 4€, con un recargo de 1€ por ocupante, calcula la media y la varianza del dinero que consigue el parque durante 10 horas.
+
+### Avanzados
+
+**Ejercicio A3.1** Programa un algoritmo de simulación para la superposición de PP definida en la Sección [Superposición](#superposicion_pp) y resuelve con simulación el Ejemplo \@ref(exm:pp002).
+
+**Ejercicio A3.2** Programa un algoritmo de simulación para la mixtura de PP definida en la Sección [Adelgazamiento con mixtura](#adelgazamiento_pp) y resuelve con simulación el Ejemplo \@ref(exm:pp003).
+
+**Ejercicio A3.3** Programa un algoritmo de simulación para la composición de PP definida en la Sección [Composición](#composicion_pp) y resuelve con simulación el Ejemplo \@ref(exm:pp004).
+
+**Ejercicio A3.4** Programa un algoritmo de simulación para PP no estacionario, definido en la Sección [PP no estacionarios](#pp_noestacionarios) y resuelve con simulación el Ejemplo \@ref(exm:pp005).
+
+**Ejercicio A3.5** Un servicio de venta telefónica recibe llamadas conforme a un PP. Aproxima el resultado teórico tanto como puedas y después simula el proceso y calcula el volumen esperado (en términos de euros) de las ventas que se realizan durante un intervalo de 50 minutos desde las 12 del mediodía hasta las 12:50pm bajo las diversas condiciones que se proponen a continuación, asumiendo que todos los días son probabilísticamente iguales.
+
+1.  El PP de llegadas es estacionario con tasa de 50 llamadas por hora. Además, sólo la mitad de las llamadas acaban en compras, el 30% de las llamadas acaban con una compra de 100€ y el 20% con compras de 200€.
+2.  Como la mayoría de la gente tiende a llamar en su descanso para almorzar, la tasa de llegadas se incrementa lentamente a partir de mediodía; entre las 12 y las 12:05 la tasa es de 40 llamadas, entre las 12:05pm y las 12:10pm, la tasa es de 45 llamadas por hora, y desde las 12:10pm hasta las 12:50pm la tasa es de 50 llamadas. Las probabilidades y compras son similares a las del apartado 1.
+3.  La tasa de llamadas se aproxima con una función lineal que da 40 llamadas por hora al mediodía y 50 a las 12:15pm. La tasa es constante durante los siguientes 30 minutos. Las probabilidades y compras sin similares a las del apartado 1.

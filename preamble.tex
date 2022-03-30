@@ -1,0 +1,44 @@
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{framed}
+
+\setlength{\fboxsep}{.8em}
+
+\usepackage{longtable}
+\ifxetex
+  \usepackage{polyglossia}
+  \setmainlanguage{spanish}
+  % Tabla en lugar de cuadro
+  \gappto\captionsspanish{\renewcommand{\tablename}{Tabla}  
+          \renewcommand{\listtablename}{Índice de tablas}}
+\else
+  \usepackage[spanish,es-tabla]{babel}
+\fi
+\usepackage[natbibapa]{apacite}
+\usepackage[hyphens]{url}
+
+\newenvironment{silverbox}{
+  \definecolor{shadecolor}{rgb}{192, 192, 192}  
+  \color{black}
+  \begin{shaded}}
+ {\end{shaded}}
+ 
+\newenvironment{yellowbox}{
+  \definecolor{shadecolor}{rgb}{210, 180, 140}  
+  \color{black}
+  \begin{shaded}}
+ {\end{shaded}}
+ 
+\newenvironment{bluebox}{
+  \definecolor{shadecolor}{rgb}{176, 196, 222}  
+  \color{black}
+  \begin{shaded}}
+ {\end{shaded}}
+ 
+\newenvironment{whitebox}{
+  \definecolor{shadecolor}{rgb}{255, 255, 255}  
+  \color{black}
+  \begin{shaded}}
+ {\end{shaded}}
+
